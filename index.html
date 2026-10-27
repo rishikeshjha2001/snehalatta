@@ -111,6 +111,7 @@
       display: none;
     }
 
+    /* Standard Section Classes */
     .snap-screen {
       height: 100%;
       height: 100dvh;
@@ -120,8 +121,20 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 14px) 16px;
+      padding: env(safe-area-inset-top, 14px) 16px env(safe-area-inset-bottom, 14px) 16px;
       box-sizing: border-box;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .birthday-section.active-section {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .birthday-section:not(.active-section) {
+      opacity: 0.94;
+    }
+    .birthday-section.section-completed {
+      filter: saturate(1.05);
     }
 
     /* Glassmorphism card */
@@ -160,7 +173,7 @@
 
     /* Slider track */
     .slider-track {
-      transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
     }
 
     /* Speech Bubble Tail */
@@ -200,9 +213,15 @@
   <!-- Ambient Floating Background Particles -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0" id="ambientDecorations"></div>
 
-  <!-- Top Floating Music Pill Button -->
-  <header class="fixed top-3 left-4 z-40 flex items-center gap-2">
-    <button id="musicToggleBtn" onclick="toggleMusic()" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-pink-200 shadow-md text-xs font-cute text-pink-700 active:scale-95 transition-all">
+  <!-- Top Story Tour Global Progress Bar -->
+  <div class="fixed top-0 left-0 right-0 h-1 bg-pink-100/60 z-50 overflow-hidden">
+    <div id="storyProgressBar" class="h-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 w-[20%] transition-all duration-700"></div>
+  </div>
+
+  <!-- Top Floating Controls (Music + Automatic Story Mode) -->
+  <header class="fixed top-2.5 left-3 sm:left-4 z-40 flex items-center gap-2">
+    <!-- Music Button -->
+    <button id="musicToggleBtn" onclick="toggleMusic()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-pink-200 shadow-md text-xs font-cute text-pink-700 active:scale-95 transition-all">
       <span id="musicIcon" class="text-sm">🎵</span>
       <span id="musicLabel" class="font-bold">Music</span>
       <!-- Soundwave animation bars -->
@@ -212,15 +231,22 @@
         <div class="eq-bar w-0.5 bg-pink-500 rounded-full h-1.5"></div>
       </div>
     </button>
+
+    <!-- Automatic Story Tour Button -->
+    <button id="storyTourBtn" onclick="toggleAutoStory()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-purple-200 shadow-md text-xs font-cute text-purple-700 active:scale-95 transition-all" title="Toggle automatic step-by-step tour">
+      <span id="storyTourIcon">🎬</span>
+      <span id="storyTourText" class="font-bold">Auto Tour: ON</span>
+      <span id="storyTourDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+    </button>
   </header>
 
   <!-- Mobile Floating Screen Indicator (Right Edge) -->
-  <nav class="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2.5 bg-white/70 backdrop-blur-md p-1.5 rounded-full border border-pink-200/90 shadow-md">
-    <button onclick="scrollToScreen(0)" id="navDot-0" class="w-3.5 h-3.5 rounded-full bg-pink-500 transition-all" aria-label="Screen 1: Birthday Cake"></button>
-    <button onclick="scrollToScreen(1)" id="navDot-1" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 2: Photos"></button>
-    <button onclick="scrollToScreen(2)" id="navDot-2" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 3: Virtues"></button>
-    <button onclick="scrollToScreen(3)" id="navDot-3" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 4: Balloon Pop"></button>
-    <button onclick="scrollToScreen(4)" id="navDot-4" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 5: Tribute & Lanterns"></button>
+  <nav class="fixed right-2.5 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2.5 bg-white/70 backdrop-blur-md p-1.5 rounded-full border border-pink-200/90 shadow-md">
+    <button onclick="userNavigateScreen(0)" id="navDot-0" class="w-3.5 h-3.5 rounded-full bg-pink-500 transition-all" aria-label="Screen 1: Birthday Cake"></button>
+    <button onclick="userNavigateScreen(1)" id="navDot-1" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 2: Photos"></button>
+    <button onclick="userNavigateScreen(2)" id="navDot-2" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 3: Virtues"></button>
+    <button onclick="userNavigateScreen(3)" id="navDot-3" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 4: Balloon Pop"></button>
+    <button onclick="userNavigateScreen(4)" id="navDot-4" class="w-2 h-2 rounded-full bg-pink-200 transition-all" aria-label="Screen 5: Tribute & Lanterns"></button>
   </nav>
 
   <!-- Lightbox Modal for High-Resolution Photos -->
@@ -238,11 +264,11 @@
   <!-- ================= MAIN SNAP CONTAINER ================= -->
   <main class="snap-screens" id="snapContainer">
 
-    <!-- ================= SCREEN 1: CAKE, ANIMATED CAT & ACCURATE MIC-BLOW ================= -->
-    <section class="snap-screen items-center" id="screen-0">
+    <!-- ================= SECTION 0: CAKE, ANIMATED CAT & ACCURATE MIC-BLOW ================= -->
+    <section class="snap-screen birthday-section active-section items-center" id="screen-0" data-section-index="0">
       
       <!-- Top Title Area -->
-      <div class="w-full max-w-md text-center pt-10 sm:pt-4">
+      <div class="w-full max-w-md text-center pt-12 sm:pt-6">
         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 shadow-sm border border-pink-200 mb-1 animate-bounceGentle">
           <span class="text-sm">🌸</span>
           <span class="font-cute text-xs sm:text-sm font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
@@ -408,10 +434,10 @@
 
       </div>
 
-      <!-- Bottom Swipe-Up Hint -->
-      <div class="w-full text-center pb-1 flex flex-col items-center">
-        <button onclick="scrollToScreen(1)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/80 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
-          <span>Swipe up for photo moments</span>
+      <!-- Bottom Navigation Hint -->
+      <div class="w-full text-center pb-2 flex flex-col items-center">
+        <button onclick="userNavigateScreen(1)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/85 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
+          <span>Continue to moments</span>
           <span>👇</span>
         </button>
       </div>
@@ -419,27 +445,28 @@
     </section>
 
 
-    <!-- ================= SCREEN 2: PHOTO MOMENTS CAROUSEL (WITH HER REAL PHOTOS) ================= -->
-    <section class="snap-screen items-center" id="screen-1">
+    <!-- ================= SECTION 1: PHOTO MOMENTS AUTOMATIC CAROUSEL ================= -->
+    <section class="snap-screen birthday-section items-center" id="screen-1" data-section-index="1">
       
-      <!-- Screen 2 Header -->
-      <div class="w-full max-w-md text-center pt-10 sm:pt-4">
-        <span class="px-3 py-1 rounded-full bg-pink-100 text-pink-700 font-cute text-xs font-bold uppercase tracking-wider">
-          Moments of Grace 🌟
-        </span>
+      <!-- Section 1 Header -->
+      <div class="w-full max-w-md text-center pt-12 sm:pt-6">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 text-pink-700 font-cute text-xs font-bold uppercase tracking-wider">
+          <span>Moments of Grace 🌟</span>
+          <span class="text-[10px] text-pink-500 font-normal">(Auto Playing)</span>
+        </div>
         <h2 class="font-cute text-xl sm:text-2xl font-bold text-gray-900 mt-1">
           Celebrating Snehalatta
         </h2>
       </div>
 
       <!-- Center Slide Card -->
-      <div class="w-full max-w-sm glass-card rounded-3xl p-3 sm:p-4 my-auto relative shadow-xl border-2 border-pink-200 overflow-hidden flex flex-col justify-between">
+      <div class="w-full max-w-sm glass-card rounded-3xl p-3 sm:p-4 my-auto relative shadow-xl border-2 border-pink-200 overflow-hidden flex flex-col justify-between" id="carouselWrapper">
         
         <!-- Track Wrapper -->
         <div class="relative overflow-hidden rounded-2xl bg-pink-50/60 shadow-inner">
           <div id="sliderTrack" class="slider-track flex w-full">
             
-            <!-- Slide 1: Radiant Smile (snehalatta_smile.png) -->
+            <!-- Slide 0: Radiant Smile (snehalatta_smile.png) -->
             <div class="w-full flex-shrink-0 flex flex-col items-center text-center p-2">
               <div class="relative w-full h-52 sm:h-56 rounded-xl overflow-hidden shadow-md border-2 border-white bg-pink-100 mb-2 cursor-pointer group" onclick="openLightbox('snehalatta_smile.png', 'That Genuine, Bright Smile', 'Radiance, warmth, and innocence shining bright.')">
                 <img src="snehalatta_smile.png" alt="Snehalatta Smiling Gracefully" class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105">
@@ -462,7 +489,7 @@
               </p>
             </div>
 
-            <!-- Slide 2: Aesthetic & Chic (snehalatta_mirror.jpg) -->
+            <!-- Slide 1: Aesthetic & Chic (snehalatta_mirror.jpg) -->
             <div class="w-full flex-shrink-0 flex flex-col items-center text-center p-2">
               <div class="relative w-full h-52 sm:h-56 rounded-xl overflow-hidden shadow-md border-2 border-white bg-pink-100 mb-2 cursor-pointer group" onclick="openLightbox('snehalatta_mirror.jpg', 'Chic & Aesthetic Charm', 'Caught in reflection — stylish, authentic, and graceful.')">
                 <img src="snehalatta_mirror.jpg" alt="Snehalatta Mirror Collage" class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105">
@@ -484,7 +511,7 @@
               </p>
             </div>
 
-            <!-- Slide 3: Serene Demeanor (snehalatta_water.png) -->
+            <!-- Slide 2: Serene Demeanor (snehalatta_water.png) -->
             <div class="w-full flex-shrink-0 flex flex-col items-center text-center p-2">
               <div class="relative w-full h-52 sm:h-56 rounded-xl overflow-hidden shadow-md border-2 border-white bg-pink-100 mb-2 cursor-pointer group" onclick="openLightbox('snehalatta_water.png', 'Peaceful as Ocean Waters', 'Tranquil thoughts, inner balance, and gentle serenity.')">
                 <img src="snehalatta_water.png" alt="Snehalatta by the Water" class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105">
@@ -506,7 +533,7 @@
               </p>
             </div>
 
-            <!-- Slide 4: Nature Walk (snehalatta_garden.png) -->
+            <!-- Slide 3: Nature Walk (snehalatta_garden.png) -->
             <div class="w-full flex-shrink-0 flex flex-col items-center text-center p-2">
               <div class="relative w-full h-52 sm:h-56 rounded-xl overflow-hidden shadow-md border-2 border-white bg-pink-100 mb-2 cursor-pointer group" onclick="openLightbox('snehalatta_garden.png', 'Walking with Grace', 'Under the green archway with pure harmony.')">
                 <img src="snehalatta_garden.png" alt="Snehalatta Garden Archway" class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105">
@@ -528,7 +555,7 @@
               </p>
             </div>
 
-            <!-- Slide 5: High Ambitions (snehalatta_airplane.jpg) -->
+            <!-- Slide 4: High Ambitions (snehalatta_airplane.jpg) -->
             <div class="w-full flex-shrink-0 flex flex-col items-center text-center p-2">
               <div class="relative w-full h-52 sm:h-56 rounded-xl overflow-hidden shadow-md border-2 border-white bg-pink-100 mb-2 cursor-pointer group" onclick="openLightbox('snehalatta_airplane.jpg', 'Sky-High Ambitions', 'Watching dreams take flight into open skies.')">
                 <img src="snehalatta_airplane.jpg" alt="Snehalatta Watching Airplane" class="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105">
@@ -555,30 +582,30 @@
 
         <!-- Slider Navigation Controls -->
         <div class="flex items-center justify-between mt-2 px-1">
-          <button onclick="prevSlide()" class="w-8 h-8 rounded-full bg-white text-pink-700 shadow flex items-center justify-center font-bold text-base active:scale-90 transition-transform">
+          <button onclick="prevSlide(true)" class="w-8 h-8 rounded-full bg-white text-pink-700 shadow flex items-center justify-center font-bold text-base active:scale-90 transition-transform">
             ‹
           </button>
 
           <!-- Indicator Dots -->
           <div class="flex gap-1.5" id="sliderDots">
-            <span class="w-4 h-2 rounded-full bg-pink-500 transition-all cursor-pointer" onclick="goToSlide(0)"></span>
-            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(1)"></span>
-            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(2)"></span>
-            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(3)"></span>
-            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(4)"></span>
+            <span class="w-4 h-2 rounded-full bg-pink-500 transition-all cursor-pointer" onclick="goToSlide(0, true)"></span>
+            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(1, true)"></span>
+            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(2, true)"></span>
+            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(3, true)"></span>
+            <span class="w-2 h-2 rounded-full bg-pink-200 transition-all cursor-pointer" onclick="goToSlide(4, true)"></span>
           </div>
 
-          <button onclick="nextSlide()" class="w-8 h-8 rounded-full bg-white text-pink-700 shadow flex items-center justify-center font-bold text-base active:scale-90 transition-transform">
+          <button onclick="nextSlide(true)" class="w-8 h-8 rounded-full bg-white text-pink-700 shadow flex items-center justify-center font-bold text-base active:scale-90 transition-transform">
             ›
           </button>
         </div>
 
       </div>
 
-      <!-- Bottom Swipe-Up Hint -->
-      <div class="w-full text-center pb-1 flex flex-col items-center">
-        <button onclick="scrollToScreen(2)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/80 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
-          <span>Swipe up for special traits</span>
+      <!-- Bottom Navigation Hint -->
+      <div class="w-full text-center pb-2 flex flex-col items-center">
+        <button onclick="userNavigateScreen(2)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/85 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
+          <span>Continue to special traits</span>
           <span>👇</span>
         </button>
       </div>
@@ -586,25 +613,25 @@
     </section>
 
 
-    <!-- ================= SCREEN 3: THE ESSENCE OF CHINNI (INTERACTIVE VIRTUES) ================= -->
-    <section class="snap-screen items-center" id="screen-2">
+    <!-- ================= SECTION 2: THE ESSENCE OF CHINNI (INTERACTIVE VIRTUES) ================= -->
+    <section class="snap-screen birthday-section items-center" id="screen-2" data-section-index="2">
       
-      <!-- Screen 3 Header -->
-      <div class="w-full max-w-md text-center pt-10 sm:pt-4">
+      <!-- Section 2 Header -->
+      <div class="w-full max-w-md text-center pt-12 sm:pt-6">
         <span class="px-3 py-1 rounded-full bg-purple-100 text-purple-700 font-cute text-xs font-bold uppercase tracking-wider">
           The Essence of Bindu ✨
         </span>
         <h2 class="font-cute text-xl sm:text-2xl font-bold text-gray-900 mt-1">
           What Makes Chinni Rare
         </h2>
-        <p class="text-[11px] font-body text-gray-600 mt-0.5">Tap each charm to reveal the truth 💖</p>
+        <p class="text-[11px] font-body text-gray-600 mt-0.5">Revealing her rare qualities one by one 💖</p>
       </div>
 
       <!-- 4 Interactive Tap Cards -->
       <div class="w-full max-w-sm glass-card rounded-3xl p-3.5 sm:p-4 my-auto relative shadow-xl border-2 border-pink-200 flex flex-col gap-2">
         
         <!-- Virtue Card 1 -->
-        <div onclick="toggleVirtueCard(this, 'Pure Innocence 💎', 'She sees the world with untainted clarity, honesty, and simple goodness. In a complicated world, her natural purity is a breath of fresh air.')" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-pink-50/60">
+        <div id="virtue-card-0" onclick="handleVirtueCardClick(0)" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-pink-50/60">
           <div class="flex items-center gap-3">
             <span class="w-9 h-9 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center text-lg shrink-0">🌸</span>
             <div class="flex-1 text-left">
@@ -616,7 +643,7 @@
         </div>
 
         <!-- Virtue Card 2 -->
-        <div onclick="toggleVirtueCard(this, 'Tranquil Mind 🌊', 'Like still water reflecting a clear sky, her calm temperament and gentle words create effortless harmony wherever she walks.')" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-blue-50/60">
+        <div id="virtue-card-1" onclick="handleVirtueCardClick(1)" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-blue-50/60">
           <div class="flex items-center gap-3">
             <span class="w-9 h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg shrink-0">🕊️</span>
             <div class="flex-1 text-left">
@@ -628,7 +655,7 @@
         </div>
 
         <!-- Virtue Card 3 -->
-        <div onclick="toggleVirtueCard(this, 'Natural Poise 🌿', 'Grace is not something she puts on; it is simply who she is. Humble yet dignified in every posture and expression.')" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-emerald-50/60">
+        <div id="virtue-card-2" onclick="handleVirtueCardClick(2)" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-emerald-50/60">
           <div class="flex items-center gap-3">
             <span class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg shrink-0">🌿</span>
             <div class="flex-1 text-left">
@@ -640,7 +667,7 @@
         </div>
 
         <!-- Virtue Card 4 -->
-        <div onclick="toggleVirtueCard(this, 'Limitless Potential ✈️', 'Observing flights taking off with quiet determination, she carries the focus and dedication needed to reach remarkable heights in life.')" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-amber-50/60">
+        <div id="virtue-card-3" onclick="handleVirtueCardClick(3)" class="virtue-card bg-white/85 p-2.5 rounded-2xl border border-pink-200/90 shadow-sm cursor-pointer active:scale-98 transition-all hover:bg-amber-50/60">
           <div class="flex items-center gap-3">
             <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg shrink-0">⭐</span>
             <div class="flex-1 text-left">
@@ -653,16 +680,16 @@
 
         <!-- Dynamic Virtue Detail Modal/Banner -->
         <div id="virtueDetailBox" class="mt-0.5 p-2 rounded-2xl bg-gradient-to-r from-pink-100/90 via-purple-100/90 to-rose-100/90 border border-pink-300 text-center transition-all duration-300">
-          <p id="virtueDetailTitle" class="font-cute font-bold text-xs text-pink-800">Tap any virtue above! 👆</p>
-          <p id="virtueDetailText" class="font-body text-[11px] text-gray-700 mt-0.5 leading-snug">Every card holds a sincere thought celebrating Snehalatta.</p>
+          <p id="virtueDetailTitle" class="font-cute font-bold text-xs text-pink-800">Innocent Heart 🌸</p>
+          <p id="virtueDetailText" class="font-body text-[11px] text-gray-700 mt-0.5 leading-snug">She sees the world with untainted clarity, honesty, and simple goodness.</p>
         </div>
 
       </div>
 
-      <!-- Bottom Swipe-Up Hint -->
-      <div class="w-full text-center pb-1 flex flex-col items-center">
-        <button onclick="scrollToScreen(3)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/80 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
-          <span>Swipe up to pop balloons</span>
+      <!-- Bottom Navigation Hint -->
+      <div class="w-full text-center pb-2 flex flex-col items-center">
+        <button onclick="userNavigateScreen(3)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/85 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
+          <span>Continue to balloon wishes</span>
           <span>👇</span>
         </button>
       </div>
@@ -670,18 +697,18 @@
     </section>
 
 
-    <!-- ================= SCREEN 4: BALLOON POP WISHES MINI-GAME ================= -->
-    <section class="snap-screen items-center" id="screen-3">
+    <!-- ================= SECTION 3: BALLOON POP WISHES MINI-GAME ================= -->
+    <section class="snap-screen birthday-section items-center" id="screen-3" data-section-index="3">
       
-      <!-- Screen 4 Header -->
-      <div class="w-full max-w-md text-center pt-10 sm:pt-4">
+      <!-- Section 3 Header -->
+      <div class="w-full max-w-md text-center pt-12 sm:pt-6">
         <span class="px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-cute text-xs font-bold uppercase tracking-wider">
           Birthday Wish Box 🎈
         </span>
         <h2 class="font-cute text-xl sm:text-2xl font-bold text-gray-900 mt-1">
           Pop Chinni's Balloons!
         </h2>
-        <p class="text-[11px] font-body text-gray-600 mt-0.5">Tap each balloon to release a special blessing 🎈✨</p>
+        <p class="text-[11px] font-body text-gray-600 mt-0.5">Releasing sincere birthday blessings one by one 🎈✨</p>
       </div>
 
       <!-- Center Balloon Card -->
@@ -696,40 +723,40 @@
         <!-- The 5 Interactive Balloons Cluster -->
         <div class="relative w-full h-44 flex items-center justify-around px-1 select-none" id="balloonPlayground">
           
-          <!-- Balloon 1 -->
-          <div onclick="popBalloon(this, 'Boundless Happiness 🌸', 'May every sunrise greet you with pure peace, laughter, and heartfelt contentment.')" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0s;">
+          <!-- Balloon 0 -->
+          <div id="balloon-0" onclick="handleBalloonClick(0)" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0s;">
             <div class="w-12 h-16 rounded-full bg-gradient-to-t from-pink-400 to-rose-200 shadow-md flex items-center justify-center text-sm border border-pink-300">
               🌸
             </div>
             <div class="w-0.5 h-6 bg-pink-300"></div>
           </div>
 
-          <!-- Balloon 2 -->
-          <div onclick="popBalloon(this, 'Glowing Health 🍃', 'Blessed with boundless vitality, restful nights, and energized days.')" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0.6s;">
+          <!-- Balloon 1 -->
+          <div id="balloon-1" onclick="handleBalloonClick(1)" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0.6s;">
             <div class="w-12 h-16 rounded-full bg-gradient-to-t from-emerald-400 to-teal-200 shadow-md flex items-center justify-center text-sm border border-emerald-300">
               ⭐
             </div>
             <div class="w-0.5 h-6 bg-emerald-300"></div>
           </div>
 
-          <!-- Balloon 3 (Center) -->
-          <div onclick="popBalloon(this, 'Golden Success 🏆', 'May all your career, education, and personal ambitions fly high like that soaring airplane.')" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0.3s;">
+          <!-- Balloon 2 (Center) -->
+          <div id="balloon-2" onclick="handleBalloonClick(2)" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0.3s;">
             <div class="w-13 h-17 rounded-full bg-gradient-to-t from-amber-400 to-yellow-200 shadow-lg flex items-center justify-center text-base border border-amber-300">
               ✈️
             </div>
             <div class="w-0.5 h-7 bg-amber-300"></div>
           </div>
 
-          <!-- Balloon 4 -->
-          <div onclick="popBalloon(this, 'Tranquil Peace 🕊️', 'Serenity in your heart and graceful clarity in every choice you make.')" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0.9s;">
+          <!-- Balloon 3 -->
+          <div id="balloon-3" onclick="handleBalloonClick(3)" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 0.9s;">
             <div class="w-12 h-16 rounded-full bg-gradient-to-t from-sky-400 to-blue-200 shadow-md flex items-center justify-center text-sm border border-sky-300">
               🌊
             </div>
             <div class="w-0.5 h-6 bg-sky-300"></div>
           </div>
 
-          <!-- Balloon 5 -->
-          <div onclick="popBalloon(this, 'True Fulfillment 🌟', 'Surrounded always by genuine respect, faithful friends, and boundless love.')" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 1.2s;">
+          <!-- Balloon 4 -->
+          <div id="balloon-4" onclick="handleBalloonClick(4)" class="balloon-item flex flex-col items-center cursor-pointer transition-transform duration-200 active:scale-90 hover:scale-105 animate-float" style="animation-delay: 1.2s;">
             <div class="w-12 h-16 rounded-full bg-gradient-to-t from-purple-400 to-violet-200 shadow-md flex items-center justify-center text-sm border border-purple-300">
               ✨
             </div>
@@ -751,10 +778,10 @@
 
       </div>
 
-      <!-- Bottom Swipe-Up Hint -->
-      <div class="w-full text-center pb-1 flex flex-col items-center">
-        <button onclick="scrollToScreen(4)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/80 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
-          <span>Swipe up for tribute</span>
+      <!-- Bottom Navigation Hint -->
+      <div class="w-full text-center pb-2 flex flex-col items-center">
+        <button onclick="userNavigateScreen(4)" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/85 shadow-sm border border-pink-200 text-xs font-cute text-pink-700 animate-bounce">
+          <span>Continue to final tribute</span>
           <span>👇</span>
         </button>
       </div>
@@ -762,11 +789,11 @@
     </section>
 
 
-    <!-- ================= SCREEN 5: SINCERE TRIBUTE & SKY LANTERNS ================= -->
-    <section class="snap-screen items-center" id="screen-4">
+    <!-- ================= SECTION 4: SINCERE TRIBUTE & SKY LANTERNS ================= -->
+    <section class="snap-screen birthday-section items-center" id="screen-4" data-section-index="4">
       
-      <!-- Screen 5 Header -->
-      <div class="w-full max-w-md text-center pt-10 sm:pt-4">
+      <!-- Section 4 Header -->
+      <div class="w-full max-w-md text-center pt-12 sm:pt-6">
         <span class="px-3 py-1 rounded-full bg-rose-100 text-rose-700 font-cute text-xs font-bold uppercase tracking-wider">
           A Sincere Tribute 🌸
         </span>
@@ -817,6 +844,11 @@
           
           <button onclick="triggerConfettiShower()" class="w-full py-2 rounded-full bg-white text-pink-700 font-cute text-xs font-semibold border border-pink-200 shadow-sm active:scale-95 transition-transform">
             ✨ Celebrate Snehalatta! ✨
+          </button>
+
+          <!-- Replay Button -->
+          <button onclick="restartStoryTour()" class="w-full py-1.5 rounded-full bg-purple-50 text-purple-700 font-cute text-xs font-bold border border-purple-200 hover:bg-purple-100 active:scale-95 transition-all">
+            🔄 Replay Story Tour From Beginning
           </button>
         </div>
 
@@ -880,9 +912,10 @@
     }, { passive: true });
 
     /* ==========================================================
-       3. SCREEN NAVIGATION & SNAP CONTROLLER
+       3. SECTION NAVIGATION & AUTOMATIC STORY FLOW CONTROLLER
        ========================================================== */
     const snapContainer = document.getElementById('snapContainer');
+    const sections = document.querySelectorAll('.birthday-section');
     const navDots = [
       document.getElementById('navDot-0'),
       document.getElementById('navDot-1'),
@@ -890,28 +923,210 @@
       document.getElementById('navDot-3'),
       document.getElementById('navDot-4')
     ];
+    const storyProgressBar = document.getElementById('storyProgressBar');
+
+    let currentStorySection = 0;
+    let isAutoStoryActive = true;
+    let storyTimers = [];
+
+    function clearStoryTimers() {
+      storyTimers.forEach(t => clearTimeout(t));
+      storyTimers = [];
+    }
 
     function scrollToScreen(index) {
       const targetScreen = document.getElementById(`screen-${index}`);
       if (targetScreen) {
         targetScreen.scrollIntoView({ behavior: 'smooth' });
       }
+      updateSectionClasses(index);
+    }
+
+    function userNavigateScreen(index) {
+      clearStoryTimers();
+      scrollToScreen(index);
+      currentStorySection = index;
+      if (isAutoStoryActive) {
+        runSectionFlow(index);
+      }
+    }
+
+    function updateSectionClasses(index) {
+      currentStorySection = index;
+      sections.forEach((sec, idx) => {
+        if (idx === index) {
+          sec.classList.add('active-section');
+          sec.classList.remove('section-completed');
+        } else if (idx < index) {
+          sec.classList.remove('active-section');
+          sec.classList.add('section-completed');
+        } else {
+          sec.classList.remove('active-section', 'section-completed');
+        }
+      });
+
+      navDots.forEach((dot, idx) => {
+        if (!dot) return;
+        if (idx === index) {
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-pink-500 transition-all';
+        } else if (idx < index) {
+          dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-400 transition-all';
+        } else {
+          dot.className = 'w-2 h-2 rounded-full bg-pink-200 transition-all';
+        }
+      });
+
+      if (storyProgressBar) {
+        const percent = ((index + 1) / sections.length) * 100;
+        storyProgressBar.style.width = `${percent}%`;
+      }
     }
 
     snapContainer.addEventListener('scroll', () => {
       const scrollTop = snapContainer.scrollTop;
       const height = snapContainer.clientHeight;
-      const current = Math.min(navDots.length - 1, Math.round(scrollTop / height));
-
-      navDots.forEach((dot, idx) => {
-        if (!dot) return;
-        if (idx === current) {
-          dot.className = 'w-3.5 h-3.5 rounded-full bg-pink-500 transition-all';
-        } else {
-          dot.className = 'w-2 h-2 rounded-full bg-pink-200 transition-all';
-        }
-      });
+      const index = Math.min(navDots.length - 1, Math.round(scrollTop / height));
+      if (index !== currentStorySection) {
+        updateSectionClasses(index);
+      }
     }, { passive: true });
+
+    function toggleAutoStory() {
+      isAutoStoryActive = !isAutoStoryActive;
+      const label = document.getElementById('storyTourText');
+      const dot = document.getElementById('storyTourDot');
+
+      if (isAutoStoryActive) {
+        label.innerText = "Auto Tour: ON";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        runSectionFlow(currentStorySection);
+      } else {
+        label.innerText = "Auto Tour: PAUSED";
+        dot.className = "w-2 h-2 rounded-full bg-amber-400";
+        clearStoryTimers();
+      }
+    }
+
+    function finishSectionAndNavigate(fromIndex, toIndex) {
+      if (!isAutoStoryActive) return;
+      const fromEl = document.getElementById(`screen-${fromIndex}`);
+      if (fromEl) {
+        fromEl.classList.remove('active-section');
+        fromEl.classList.add('section-completed');
+      }
+
+      if (toIndex < sections.length) {
+        scrollToScreen(toIndex);
+        runSectionFlow(toIndex);
+      }
+    }
+
+    function runSectionFlow(sectionIndex) {
+      clearStoryTimers();
+      updateSectionClasses(sectionIndex);
+
+      if (!isAutoStoryActive) return;
+
+      if (sectionIndex === 0) {
+        // Section 0: Birthday Cake & Blow
+        // Prompt user, and if they don't blow within 6.5s, auto blow softly to continue story
+        const t0 = setTimeout(() => {
+          if (!isCandlesBlown && isAutoStoryActive && currentStorySection === 0) {
+            triggerSimulatedBlow();
+          }
+        }, 6500);
+        storyTimers.push(t0);
+      } 
+      else if (sectionIndex === 1) {
+        // Section 1: Photos Slider
+        // Automatically slides through all 5 photos one by one
+        goToSlide(0);
+        startAutoSlider();
+        
+        // After 5 slides * 3.5s = 17.5s, automatically navigate to Section 2 (Virtues)
+        const t1 = setTimeout(() => {
+          if (isAutoStoryActive && currentStorySection === 1) {
+            finishSectionAndNavigate(1, 2);
+          }
+        }, 18000);
+        storyTimers.push(t1);
+      }
+      else if (sectionIndex === 2) {
+        // Section 2: Virtues & Traits
+        // Automatically highlight each virtue card one by one
+        const virtueData = [
+          { index: 0, delay: 600 },
+          { index: 1, delay: 3200 },
+          { index: 2, delay: 5800 },
+          { index: 3, delay: 8400 }
+        ];
+
+        virtueData.forEach(item => {
+          const tv = setTimeout(() => {
+            if (isAutoStoryActive && currentStorySection === 2) {
+              handleVirtueCardClick(item.index, false);
+            }
+          }, item.delay);
+          storyTimers.push(tv);
+        });
+
+        // After all 4 virtues are revealed, navigate to Section 3 (Balloons)
+        const t2 = setTimeout(() => {
+          if (isAutoStoryActive && currentStorySection === 2) {
+            finishSectionAndNavigate(2, 3);
+          }
+        }, 11200);
+        storyTimers.push(t2);
+      }
+      else if (sectionIndex === 3) {
+        // Section 3: Balloon Pop Mini-game
+        // Automatically pop each balloon one after another every 2 seconds
+        for (let b = 0; b < 5; b++) {
+          const tb = setTimeout(() => {
+            if (isAutoStoryActive && currentStorySection === 3) {
+              handleBalloonClick(b, false);
+            }
+          }, 800 + b * 2000);
+          storyTimers.push(tb);
+        }
+
+        // After all balloons pop, wait 3 seconds and navigate to Section 4 (Tribute)
+        const t3 = setTimeout(() => {
+          if (isAutoStoryActive && currentStorySection === 3) {
+            finishSectionAndNavigate(3, 4);
+          }
+        }, 13000);
+        storyTimers.push(t3);
+      }
+      else if (sectionIndex === 4) {
+        // Section 4: Sincere Tribute & Sky Lanterns
+        const t4a = setTimeout(() => {
+          if (isAutoStoryActive && currentStorySection === 4) {
+            releaseSkyLanterns();
+          }
+        }, 1200);
+        storyTimers.push(t4a);
+
+        const t4b = setTimeout(() => {
+          if (isAutoStoryActive && currentStorySection === 4) {
+            triggerConfettiShower();
+          }
+        }, 3600);
+        storyTimers.push(t4b);
+      }
+    }
+
+    function restartStoryTour() {
+      relightCandles();
+      resetBalloons();
+      isAutoStoryActive = true;
+      const label = document.getElementById('storyTourText');
+      const dot = document.getElementById('storyTourDot');
+      if (label) label.innerText = "Auto Tour: ON";
+      if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+
+      userNavigateScreen(0);
+    }
 
     /* ==========================================================
        4. AUDIO ENGINE: HARMONIC WEB AUDIO SYNTHESIZER & MP3 FALLBACK
@@ -929,7 +1144,6 @@
       'C6': 1046.50
     };
 
-    // Rich polyphonic melody with chord harmonies
     const birthdayMelody = [
       { note: 'G4', beats: 0.75, chord: 'C4' },
       { note: 'G4', beats: 0.25, chord: 'C4' },
@@ -1026,7 +1240,6 @@
     function toggleMusic() {
       ensureAudioContext();
 
-      // Check if external mp3 exists and works
       if (bgAudioEl && bgAudioEl.currentSrc && !bgAudioEl.error) {
         if (bgAudioEl.paused) {
           bgAudioEl.play().then(() => {
@@ -1067,7 +1280,6 @@
       }
     }
 
-    // Auto-start on first user gesture
     function autoStartAudio() {
       if (isMusicPlaying) return;
       toggleMusic();
@@ -1079,7 +1291,6 @@
       window.addEventListener(evt, autoStartAudio, { once: true });
     });
 
-    /* Synthesize Pop Sound for Balloon Game */
     function playPopChime() {
       if (!audioCtx) ensureAudioContext();
       if (!audioCtx) return;
@@ -1096,7 +1307,6 @@
       osc.stop(audioCtx.currentTime + 0.12);
     }
 
-    /* Synthesize Magical Chime for Virtue Cards */
     function playChimeBell(freq = 880) {
       if (!audioCtx) ensureAudioContext();
       if (!audioCtx) return;
@@ -1112,7 +1322,6 @@
       osc.stop(audioCtx.currentTime + 0.7);
     }
 
-    /* Synthesize Gentle Extinguish Whoosh */
     function playPuffSound() {
       if (!audioCtx) ensureAudioContext();
       if (!audioCtx) return;
@@ -1135,7 +1344,7 @@
     let micStream = null;
     let micAnalyser = null;
     let isCandlesBlown = false;
-    let blowProgress = 0; // 0 to 100
+    let blowProgress = 0;
     let extinguishedCount = 0;
     let baselineNoise = 15;
     let sampleCounter = 0;
@@ -1188,7 +1397,6 @@
       const buffer = new Uint8Array(micAnalyser.frequencyBinCount);
       micAnalyser.getByteFrequencyData(buffer);
 
-      // Breath into mic causes turbulence in low & mid bins (bins 1 to 24)
       let sum = 0;
       const count = 24;
       for (let i = 1; i <= count; i++) {
@@ -1196,34 +1404,27 @@
       }
       const currentAvg = sum / count;
 
-      // Auto-calibrate background room noise for the first 35 frames
       if (sampleCounter < 35) {
         baselineNoise = (baselineNoise * sampleCounter + currentAvg) / (sampleCounter + 1);
         sampleCounter++;
       } else {
-        // Effective breath signal above ambient baseline
         const delta = Math.max(0, currentAvg - (baselineNoise + 6));
 
-        // When breath turbulence is detected
         if (delta > 8) {
-          // Accumulate blow progress smoothly
           blowProgress = Math.min(100, blowProgress + (delta / 18) * 3.5);
           const bubble = document.getElementById('catMessage');
           if (bubble && blowProgress > 25 && blowProgress < 85) {
             bubble.innerText = "Ooooh! I feel the breeze! Keep blowing!! 💨";
           }
         } else {
-          // Slowly decay if user stops blowing
           blowProgress = Math.max(0, blowProgress - 1.2);
         }
 
-        // Update progress bar
         const meterBar = document.getElementById('micLevelBar');
         const meterPercent = document.getElementById('micLevelPercent');
         if (meterBar) meterBar.style.width = `${Math.round(blowProgress)}%`;
         if (meterPercent) meterPercent.innerText = `${Math.round(blowProgress)}%`;
 
-        // Sequential Candle Blow
         if (blowProgress >= 33 && extinguishedCount === 0) {
           extinguishCandleIndex(0);
         }
@@ -1329,6 +1530,14 @@
         } catch (e) {}
         micStream = null;
       }
+
+      // Automatic progression to Section 1 (Photos) after 3.8s
+      if (isAutoStoryActive) {
+        const tNext = setTimeout(() => {
+          finishSectionAndNavigate(0, 1);
+        }, 3800);
+        storyTimers.push(tNext);
+      }
     }
 
     function createSmokeAtCandle(index) {
@@ -1376,25 +1585,20 @@
       requestMicPermission();
     }
 
-    // Auto prompt mic permission softly after load
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        requestMicPermission();
-        triggerConfettiShower();
-      }, 700);
-    });
-
     /* ==========================================================
-       6. PHOTO SLIDER CONTROLS & LIGHTBOX MODAL
+       6. AUTOMATIC PHOTO SLIDER & LIGHTBOX MODAL
        ========================================================== */
     let currentSlide = 0;
     const totalSlides = 5;
     const track = document.getElementById('sliderTrack');
     const dots = document.getElementById('sliderDots').children;
+    let sliderTimer = null;
 
     function updateSlider() {
+      if (!track) return;
       track.style.transform = `translateX(-${currentSlide * 100}%)`;
       for (let i = 0; i < totalSlides; i++) {
+        if (!dots[i]) continue;
         if (i === currentSlide) {
           dots[i].className = 'w-4 h-2 rounded-full bg-pink-500 transition-all cursor-pointer';
         } else {
@@ -1403,35 +1607,70 @@
       }
     }
 
-    function nextSlide() {
+    function nextSlide(isManual = false) {
       currentSlide = (currentSlide + 1) % totalSlides;
       updateSlider();
+      if (isManual) {
+        startAutoSlider();
+      }
     }
 
-    function prevSlide() {
+    function prevSlide(isManual = false) {
       currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
       updateSlider();
+      if (isManual) {
+        startAutoSlider();
+      }
     }
 
-    function goToSlide(index) {
+    function goToSlide(index, isManual = false) {
       currentSlide = index;
       updateSlider();
+      if (isManual) {
+        startAutoSlider();
+      }
+    }
+
+    function startAutoSlider() {
+      stopAutoSlider();
+      sliderTimer = setInterval(() => {
+        nextSlide(false);
+      }, 3500); // changes every 3.5 seconds automatically
+    }
+
+    function stopAutoSlider() {
+      if (sliderTimer) {
+        clearInterval(sliderTimer);
+        sliderTimer = null;
+      }
+    }
+
+    // Pause auto slider on mouse hover or touch hold, resume on leave
+    const carouselWrapper = document.getElementById('carouselWrapper');
+    if (carouselWrapper) {
+      carouselWrapper.addEventListener('mouseenter', stopAutoSlider);
+      carouselWrapper.addEventListener('mouseleave', () => {
+        if (currentStorySection === 1) startAutoSlider();
+      });
     }
 
     // Touch Swipe on photo slider
     let touchStartX = 0;
     let touchEndX = 0;
-    track.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-    }, { passive: true });
+    if (track) {
+      track.addEventListener('touchstart', e => {
+        stopAutoSlider();
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
 
-    track.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      if (touchStartX - touchEndX > 45) nextSlide();
-      if (touchEndX - touchStartX > 45) prevSlide();
-    }, { passive: true });
+      track.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        if (touchStartX - touchEndX > 45) nextSlide(true);
+        if (touchEndX - touchStartX > 45) prevSlide(true);
+        startAutoSlider();
+      }, { passive: true });
+    }
 
-    // Interactive Heart Reaction
     function likeSlide(index, btn) {
       const countEl = document.getElementById(`likeCount-${index}`);
       if (countEl) {
@@ -1439,7 +1678,6 @@
       }
       playChimeBell(987.77);
 
-      // Create floating heart animation
       const heart = document.createElement('span');
       heart.innerText = '💖';
       heart.className = 'fixed pointer-events-none text-xl animate-heartFly z-50';
@@ -1451,8 +1689,8 @@
       setTimeout(() => heart.remove(), 1000);
     }
 
-    // Fullscreen Lightbox
     function openLightbox(src, title, subtitle) {
+      stopAutoSlider();
       const modal = document.getElementById('photoLightbox');
       const img = document.getElementById('lightboxImg');
       const titleEl = document.getElementById('lightboxTitle');
@@ -1477,58 +1715,87 @@
       setTimeout(() => {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        if (currentStorySection === 1) startAutoSlider();
       }, 200);
     }
 
     /* ==========================================================
-       7. SCREEN 3: VIRTUE CARDS INTERACTION
+       7. SECTION 2: VIRTUE CARDS (AUTOMATIC & INTERACTIVE)
        ========================================================== */
-    function toggleVirtueCard(cardEl, title, description) {
+    const virtueCardData = [
+      { id: 'virtue-card-0', title: 'Pure Innocence 💎', desc: 'She sees the world with untainted clarity, honesty, and simple goodness. In a complicated world, her natural purity is a breath of fresh air.' },
+      { id: 'virtue-card-1', title: 'Tranquil Mind 🌊', desc: 'Like still water reflecting a clear sky, her calm temperament and gentle words create effortless harmony wherever she walks.' },
+      { id: 'virtue-card-2', title: 'Natural Poise 🌿', desc: 'Grace is not something she puts on; it is simply who she is. Humble yet dignified in every posture and expression.' },
+      { id: 'virtue-card-3', title: 'Limitless Potential ✈️', desc: 'Observing flights taking off with quiet determination, she carries the focus and dedication needed to reach remarkable heights in life.' }
+    ];
+
+    function handleVirtueCardClick(index, isUser = true) {
+      const data = virtueCardData[index];
+      if (!data) return;
+
       playChimeBell(1046.5);
       const titleEl = document.getElementById('virtueDetailTitle');
       const textEl = document.getElementById('virtueDetailText');
-      if (titleEl) titleEl.innerText = title;
-      if (textEl) textEl.innerText = description;
+      if (titleEl) titleEl.innerText = data.title;
+      if (textEl) textEl.innerText = data.desc;
 
-      // Glow effect
-      cardEl.classList.add('ring-2', 'ring-pink-400');
-      setTimeout(() => cardEl.classList.remove('ring-2', 'ring-pink-400'), 1200);
+      virtueCardData.forEach((v, i) => {
+        const el = document.getElementById(v.id);
+        if (el) {
+          if (i === index) {
+            el.classList.add('ring-2', 'ring-pink-400', 'bg-pink-50/90');
+          } else {
+            el.classList.remove('ring-2', 'ring-pink-400', 'bg-pink-50/90');
+          }
+        }
+      });
 
-      // Micro sparkles
-      const rect = cardEl.getBoundingClientRect();
-      burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 14, 50, 8);
+      const activeEl = document.getElementById(data.id);
+      if (activeEl) {
+        const rect = activeEl.getBoundingClientRect();
+        burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 14, 50, 8);
+      }
     }
 
     /* ==========================================================
-       8. SCREEN 4: BALLOON POPPING MINI-GAME
+       8. SECTION 3: BALLOON POPPING (AUTOMATIC & INTERACTIVE)
        ========================================================== */
     let poppedCount = 0;
     const totalBalloons = 5;
 
-    function popBalloon(element, wishTitle, wishDetail) {
-      if (element.classList.contains('popped')) return;
+    const balloonData = [
+      { id: 'balloon-0', title: 'Boundless Happiness 🌸', desc: 'May every sunrise greet you with pure peace, laughter, and heartfelt contentment.' },
+      { id: 'balloon-1', title: 'Glowing Health 🍃', desc: 'Blessed with boundless vitality, restful nights, and energized days.' },
+      { id: 'balloon-2', title: 'Golden Success 🏆', desc: 'May all your career, education, and personal ambitions fly high like that soaring airplane.' },
+      { id: 'balloon-3', title: 'Tranquil Peace 🕊️', desc: 'Serenity in your heart and graceful clarity in every choice you make.' },
+      { id: 'balloon-4', title: 'True Fulfillment 🌟', desc: 'Surrounded always by genuine respect, faithful friends, and boundless love.' }
+    ];
+
+    function handleBalloonClick(index, isUser = true) {
+      const data = balloonData[index];
+      if (!data) return;
+      const element = document.getElementById(data.id);
+      if (!element || element.classList.contains('popped')) return;
+
       element.classList.add('popped');
       poppedCount++;
 
       playPopChime();
 
-      // Confetti burst right at balloon coordinates
       const rect = element.getBoundingClientRect();
       burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 28, 80, 10);
 
-      // Shrink and hide
       element.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
       element.style.transform = 'scale(0)';
       element.style.opacity = '0';
       element.style.pointerEvents = 'none';
 
-      // Update wish board
       const titleEl = document.getElementById('balloonWishTitle');
       const descEl = document.getElementById('balloonWishDetail');
       const counterEl = document.getElementById('balloonCounter');
 
-      if (titleEl) titleEl.innerText = wishTitle;
-      if (descEl) descEl.innerText = wishDetail;
+      if (titleEl) titleEl.innerText = data.title;
+      if (descEl) descEl.innerText = data.desc;
       if (counterEl) counterEl.innerText = `${poppedCount} / ${totalBalloons}`;
 
       if (poppedCount >= totalBalloons) {
@@ -1547,12 +1814,14 @@
       const counterEl = document.getElementById('balloonCounter');
       if (counterEl) counterEl.innerText = `0 / ${totalBalloons}`;
 
-      const balloons = document.querySelectorAll('.balloon-item');
-      balloons.forEach(b => {
-        b.classList.remove('popped');
-        b.style.transform = 'scale(1)';
-        b.style.opacity = '1';
-        b.style.pointerEvents = 'auto';
+      balloonData.forEach(item => {
+        const b = document.getElementById(item.id);
+        if (b) {
+          b.classList.remove('popped');
+          b.style.transform = 'scale(1)';
+          b.style.opacity = '1';
+          b.style.pointerEvents = 'auto';
+        }
       });
 
       const resetBtn = document.getElementById('resetBalloonsBtn');
@@ -1565,7 +1834,7 @@
     }
 
     /* ==========================================================
-       9. SCREEN 5: SKY LANTERNS CELESTIAL RELEASE
+       9. SECTION 4: SKY LANTERNS CELESTIAL RELEASE
        ========================================================== */
     function releaseSkyLanterns() {
       const container = document.getElementById('lanternSky');
@@ -1598,7 +1867,7 @@
     }
 
     /* ==========================================================
-       10. NATIVE CANVAS CONFETTI (IFRAME & MOBILE SAFE)
+       10. NATIVE CANVAS CONFETTI
        ========================================================== */
     const confettiCanvas = document.getElementById('confettiCanvas');
     const confettiCtx = confettiCanvas.getContext('2d');
@@ -1714,6 +1983,18 @@
       setTimeout(() => burstConfetti(w * 0.25, h * 0.6, 45, 70, 13), 200);
       setTimeout(() => burstConfetti(w * 0.75, h * 0.6, 45, 70, 13), 400);
     }
+
+    /* ==========================================================
+       11. INITIALIZATION & AUTO STORY START
+       ========================================================== */
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        requestMicPermission();
+        triggerConfettiShower();
+        // Start the storytelling flow from section 0
+        runSectionFlow(0);
+      }, 700);
+    });
   </script>
 </body>
 </html>
